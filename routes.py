@@ -66,4 +66,34 @@ def captain():
     # coaches.update({"msg": "top coaches"})
     # return jsonify(msg="top football coaches", count=10)
     # return jsonify(coaches)
-    return jsonify(**coaches)
+    return jsonify(**coaches), 200
+
+
+@app.route('/not_found')
+def not_found():
+    return jsonify(messgage='not found'), 404
+
+
+@app.route('/search', strict_slashes=False, methods=['GET'])
+def search():
+    name = request.args.get('name')
+    try:
+        age = int(request.args.get('age'))
+    except Exception:
+        age = None
+    team = request.args.get('team')
+    if age is not None and age < 18:
+        return jsonify({'msg': 'unauthorized user under 18 years old'}), 401  # unauthorized status code
+    info = [name, age, team]
+    if all(info):
+        return jsonify(name=name, age=age, team=team)
+    return jsonify({'msg': 'missing some player info'}), 400   # 400 missing data
+
+
+@app.route('/player-info/<string:player_name>/<int:player_number>')
+def player_info(player_name: str, player_number: int):
+    if player_number in [7, 10, 11, 14, 22, 17]:
+        msg = 'best players number {}'.format(player_number)
+    else:
+        msg = 'normal number'
+    return jsonify(name=player_name, number=player_number, message=msg)
