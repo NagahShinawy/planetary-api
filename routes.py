@@ -1,5 +1,9 @@
-from config import *
+from planetary_api.config import *
 from random import choice
+from planetary_api.models import db, User, Planet, \
+    user_schema, users_schema, planet_schema, planets_schema
+
+session = db.session
 
 
 @app.route('/',  strict_slashes=False)
@@ -97,3 +101,46 @@ def player_info(player_name: str, player_number: int):
     else:
         msg = 'normal number'
     return jsonify(name=player_name, number=player_number, message=msg)
+
+
+@app.route("/planets", strict_slashes=False, methods=['GET'])
+def planets():
+    plts = Planet.query.all()
+    print(plts)
+    plts = [{'pname': p.planet_name, "type": p.planet_type, "home-star": p.home_star, "mass": p.mass} for p in plts]
+    print("Testing request")
+    # return jsonify(plts)
+    return jsonify(data=plts)
+
+
+# using Marshmallow
+@app.route("/planets-list", strict_slashes=False, methods=['GET'])
+def planets_list():
+    plts = Planet.query.all()
+    results = planets_schema.dumps(plts)  # return string looks like list of dics
+    results = planets_schema.dump(plts)   # return list of dics
+    # return jsonify(results)
+    return jsonify(results)
+
+
+@app.route("/users", strict_slashes=False, methods=['GET'])
+def users():
+    usrs = User.query.all()
+    print(usrs)
+    usrs = [{"ID": user.user_id, "first name": user.fname, "last name": user.lname, "email": user.email} for user in usrs]
+    # nagah = User.query.filter_by(fname='nagah')
+    nagah = User.query.filter(User.fname.ilike("naGah"))  #
+    if nagah.count() > 0:
+        nagah = nagah.first()
+    else:
+        return jsonify({})
+    print("Testing request Users")
+    # return jsonify(usrs)
+
+    return jsonify(fisrtname=nagah.fname, lastname=nagah.lname, email=nagah.email)
+
+
+# using Marshmallow
+@app.route("/users-list", strict_slashes=False, methods=['GET'])
+def users_list():
+    pass

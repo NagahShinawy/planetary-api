@@ -36,6 +36,15 @@ def search_player_2(**kwargs):
     print(res.content)
 
 
+def planets():
+    plt_endpoints = "http://127.0.0.1:8000/planets"
+    response = requests.get(plt_endpoints)
+    print(response.status_code, 'Python Flask')
+    print(response.json())
 
 
-
+def users():
+    users_endpoints = "http://127.0.0.1:8000/users"
+    response = requests.get(users_endpoints)
+    print(response.status_code, 'Users')
+    print(response.json())
