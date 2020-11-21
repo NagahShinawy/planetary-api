@@ -56,6 +56,3 @@ def seed():
     print("Rows added successfully to db")
 
 
-@app.cli.command("about")
-def about():
-    print("about")

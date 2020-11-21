@@ -60,6 +60,6 @@ def add_planet():
         "radius": 3760.0,
         "distance": 3959.0
     }
-    headers = {'Authorization': 'Bearer ' + token}  # is the equal of adding Bearer token  to add new row from postman
+    headers = {'Authorization': 'Bearer ' + token}  # is the equal of adding "Bearer token"  to add new row from postman
     res = requests.post("http://127.0.0.1:8000/add-planet", json=data, headers=headers)
     print(res.reason)
