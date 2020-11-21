@@ -2,6 +2,7 @@ from planetary_api.config import *
 from random import choice
 from planetary_api.models import db, User, Planet, \
     user_schema, users_schema, planet_schema, planets_schema
+from werkzeug.security import generate_password_hash, check_password_hash
 
 session = db.session
 
@@ -117,10 +118,18 @@ def planets():
 @app.route("/planets-list", strict_slashes=False, methods=['GET'])
 def planets_list():
     plts = Planet.query.all()
-    results = planets_schema.dumps(plts)  # return string looks like list of dics
+    results = planets_schema.dumps(plts)  # return string looks like list of dics but string
     results = planets_schema.dump(plts)   # return list of dics
     # return jsonify(results)
     return jsonify(results)
+
+
+@app.route("/planets/<int:planet_id>", strict_slashes=False, methods=['GET'])
+def single_planet(planet_id: int):
+    plt = Planet.query.filter_by(planet_id=planet_id).first()
+    if plt:
+        return jsonify(data=planet_schema.dump(plt))
+    return jsonify(msg='This Planet does not exist')
 
 
 @app.route("/users", strict_slashes=False, methods=['GET'])
@@ -143,4 +152,88 @@ def users():
 # using Marshmallow
 @app.route("/users-list", strict_slashes=False, methods=['GET'])
 def users_list():
-    pass
+    usrs = users_schema.dump(User.query.all())
+    return jsonify(usrs)
+
+
+@app.route("/users/<string:user_id>", strict_slashes=False, methods=['GET'])
+def single_user(user_id: int):
+    usr = User.query.filter_by(user_id=user_id).first()
+    if usr:
+        return jsonify(data=user_schema.dump(usr))
+    return jsonify(msg='This user does not exist'), 404
+
+
+@app.route("/register", methods=['POST'])
+def register():
+    # email = request.form['email']
+    # email = request.json['email']  # if request comes from json body
+    email = request.form['email']  # if request comes from form data
+    is_user_found = User.query.filter(User.email.ilike(email))
+    # is_found = User.query.filter_by(email=email).first()
+    if is_user_found.count() > 0:
+        return jsonify(msg=f'email ({is_user_found.first().email}) already found'), 409  # mean conflict
+    password = request.form.get('password')
+    fname = request.form.get('fname')
+    lname = request.form.get('lname')
+    if not all([fname, lname, password]):
+        return jsonify(msg='Missing required info'), 400   # means bad request
+    user = User(fname=fname, lname=lname, password=generate_password_hash(password), email=email)
+    session.add(user)
+    session.commit()
+    pwdhash = user.password
+    print(check_password_hash(pwdhash, password))
+    return jsonify(msg=f'user ({fname}) was added successfully'), 201  # mean created
+
+
+@app.route('/login', methods=['POST'])
+def login():
+    if request.is_json:   # check if data comes from json or html form
+        data = request.json
+    else:
+        data = request.form
+    email = data.get('email')
+    password = data.get('password')
+    # user = User.query.filter_by(email=email, password=password).first()
+    user = User.query.filter_by(email=email).first()
+    if user:
+        hashed_password = user.password
+        if check_password_hash(hashed_password, password):
+            token = create_access_token(identity=email)
+            return jsonify(token=token), 200
+    return jsonify(msg="incorrect email or password"), 401  # mean permissions denied
+
+
+@app.route('/reset-password/<string:email>', methods=['GET'])
+def reset_password(email: str):
+    user = User.query.filter_by(email=email).first()
+    if user:
+        msg = Message(subject='Reset Password',
+                      sender='admin@api.com', recipients=[user.email], body='Your password is "' + user.password + '"')
+        mail.send(msg)
+        return jsonify(msg='Password sent to ' + user.email), 200
+
+    return jsonify(msg='Invalid email'), 401  # means unauthorized.
+
+
+@app.route('/add-planet', methods=['POST'])
+def add_planet():
+    if request.is_json:
+        data = request.json
+    else:
+        data = request.form
+    planet_name = data.get('planet_name')
+    planet_type = data.get('planet_type')
+    home_star = data.get('home_star')
+    mass = data.get('mass')
+    radius = data.get('radius')
+    distance = data.get('distance')
+    params = [planet_name, planet_type, home_star, mass, radius, distance]
+    if not all(params):
+        return jsonify(msg='Missing data'), 400
+    plt = Planet(planet_name=planet_name,
+                 planet_type=planet_type, home_star=home_star, mass=mass, radius=radius, distance=distance)
+    session.add(plt)
+    session.commit()
+    return jsonify(data=planet_schema.dump(plt))
+
