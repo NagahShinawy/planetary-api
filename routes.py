@@ -217,6 +217,7 @@ def reset_password(email: str):
 
 
 @app.route('/add-planet', methods=['POST'])
+@jwt_required   # securing endpoint
 def add_planet():
     if request.is_json:
         data = request.json
@@ -229,11 +230,14 @@ def add_planet():
     radius = data.get('radius')
     distance = data.get('distance')
     params = [planet_name, planet_type, home_star, mass, radius, distance]
+    plt = Planet.query.filter_by(planet_name=planet_name).first()
+    if plt:
+        return jsonify(msg='Planet "{}" is already exist'.format(planet_name)), 409  # mean conflict
     if not all(params):
         return jsonify(msg='Missing data'), 400
     plt = Planet(planet_name=planet_name,
                  planet_type=planet_type, home_star=home_star, mass=mass, radius=radius, distance=distance)
     session.add(plt)
     session.commit()
-    return jsonify(data=planet_schema.dump(plt))
+    return jsonify(data=planet_schema.dump(plt)), 201  # means new row created
 
