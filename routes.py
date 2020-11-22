@@ -219,6 +219,7 @@ def reset_password(email: str):
 @app.route('/add-planet', methods=['POST'])
 @jwt_required   # securing endpoint
 def add_planet():
+    # user get_planet_obj_with_payload method instead
     if request.is_json:
         data = request.json
     else:
@@ -242,13 +243,15 @@ def add_planet():
     return jsonify(data=planet_schema.dump(plt)), 201  # means new row created
 
 
-@app.route('/update-planet/<int:planet_id>', methods=['PUT'])
+@app.route('/update-planet', methods=['PUT'])
 @jwt_required   # securing endpoint
-def update_planet(planet_id):
+def update_planet():
+    # user get_planet_obj_with_payload method instead
     if request.is_json:
         data = request.json
     else:
         data = request.form
+    planet_id = data.get('planet_id')
     planet = Planet.query.filter_by(planet_id=planet_id).first()
     if not planet:
         return jsonify(msg=f"Planet with id '{planet_id}' is not exist"), 404
@@ -278,5 +281,41 @@ def update_planet(planet_id):
     params = [planet_name, planet_type, home_star, mass, radius, distance]
     if any(params):
         # return jsonify(msg=f"Planet '{planet.planet_name}' is updated successfully")
-        return jsonify(data=planet_schema.dump(planet))
+        return jsonify(data=planet_schema.dump(planet)), 202   # means updated
     return jsonify(msg='No params passed to update'), 400
+
+
+@app.route('/delete-planet/<int:planet_id>', methods=['DELETE'])
+@jwt_required   # securing endpoint
+def delete_planet(planet_id: int):
+    plt = get_planet_obj_with_id(planet_id)
+    if plt is None:
+        return jsonify(msg=f"Planet with id '{planet_id}' is not exist"), 404
+    planet_name = plt.planet_name
+    session.delete(plt)
+    session.commit()
+    # return jsonify(msg='Planet "{}" was deleted'.format(planet_name)), 204 # means no content
+    return jsonify(msg='Planet "{}" was deleted'.format(planet_name)), 202  # means change accepted
+
+
+def get_planet_obj_with_id(planet_id):
+    # if request.is_json:
+    #     data = request.json
+    # else:
+    #     data = request.form
+    # planet_id = data.get('planet_id')
+    plt = Planet.query.filter_by(planet_id=planet_id).first()
+    if plt:
+        return plt
+
+
+def get_planet_obj_with_payload():
+    if request.is_json:
+        data = request.json
+    else:
+        data = request.form
+    planet_id = data.get('planet_id')
+    plt = Planet.query.filter_by(planet_id=planet_id).first()
+    if plt:
+        return plt
+

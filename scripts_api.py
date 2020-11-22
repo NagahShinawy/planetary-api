@@ -118,6 +118,7 @@ def update_planet(email, password, planet_id, **kwargs):
     if distance:
         data['distance'] = distance
     data = {
+        "planet_id": planet_id,
         "planet_name": plt_name,
         "planet_type": plt_type,
         "home_star": home_star,
@@ -126,5 +127,15 @@ def update_planet(email, password, planet_id, **kwargs):
         "distance": distance
     }
     headers = {'Authorization': 'Bearer ' + token}  # is the equal of adding "Bearer token"  to add new row from postman
-    res = requests.put(f"http://127.0.0.1:8000/update-planet/{planet_id}", json=data, headers=headers)
+    res = requests.put(f"http://127.0.0.1:8000/update-planet", json=data, headers=headers)
+    print(res.reason)
+
+
+def delete_planet(email, password, planet_id):
+    token = login(email, password)
+    payload = {
+        'planet_id': planet_id
+    }
+    headers = {'Authorization': 'Bearer ' + token}
+    res = requests.delete("http://127.0.0.1:8000/delete-planet", json=payload, headers=headers)
     print(res.reason)
