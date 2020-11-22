@@ -241,3 +241,42 @@ def add_planet():
     session.commit()
     return jsonify(data=planet_schema.dump(plt)), 201  # means new row created
 
+
+@app.route('/update-planet/<int:planet_id>', methods=['PUT'])
+@jwt_required   # securing endpoint
+def update_planet(planet_id):
+    if request.is_json:
+        data = request.json
+    else:
+        data = request.form
+    planet = Planet.query.filter_by(planet_id=planet_id).first()
+    if not planet:
+        return jsonify(msg=f"Planet with id '{planet_id}' is not exist"), 404
+    planet_name = data.get('planet_name')
+    if planet_name is not None:
+        planet.planet_name = planet_name
+    planet_type = data.get('planet_type')
+    if planet_type is not None:
+        planet.planet_type = planet_type
+    home_star = data.get('home_star')
+    if home_star is not None:
+        planet.home_star = home_star
+
+    mass = data.get('mass')
+    if mass is not None:
+        planet.mass = mass
+
+    radius = data.get('radius')
+    if radius is not None:
+        planet.radius = radius
+
+    distance = data.get('distance')
+    if distance is not None:
+        planet.distance = distance
+
+    session.commit()
+    params = [planet_name, planet_type, home_star, mass, radius, distance]
+    if any(params):
+        # return jsonify(msg=f"Planet '{planet.planet_name}' is updated successfully")
+        return jsonify(data=planet_schema.dump(planet))
+    return jsonify(msg='No params passed to update'), 400

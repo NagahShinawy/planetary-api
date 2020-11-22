@@ -56,3 +56,4 @@ def seed():
     print("Rows added successfully to db")
 
 
+
