@@ -1,0 +1,100 @@
+> flask routes
+> flask shell
+==============================
+> how to run cli
+1- from models import *
+2- create_db()
+
+or
+
+> flask cliCommandName but command with functions should added at routes.py
+===================================
+1- List model objects
+ModelName.query.all()
+
+###################
+Case Insensitive Flask-SQLAlchemy Query
+Model.query.filter(Model.column.ilike("ganye"))
+
+##########################################
+How to use marshmallow
+
+1- pip install flask-marshmallow
+
+2- at config :
+    from flask-marshmallow import Marshmallow
+    ma = Marshmallow(app)
+
+
+3 - at models
+    3-1 select fields to serialize it LOOK AT CODE AT models.py
+
+4- create ma object ==>
+  4-1 user_schema = UserSchema()  for single obj
+  4-2 users_schema = UserSchema(many=True)   from many objs
+###########################################
+5- Json web token
+ 5-1 pip install flask-login
+ 5-2 pip install flask-user
+ 5-2 pip install flask-jwt-extended
+
+
+############## Capture request data #########################
+request.args: the key/value pairs in the URL query string
+request.form: the key/value pairs in the body, from a HTML post form, or JavaScript request that isn't JSON encoded
+request.files: the files in the body, which Flask keeps separate from form. HTML forms must use enctype=multipart/form-data or files will not be uploaded.
+request.values: combined args and form, preferring args if keys overlap
+request.json: parsed JSON data. The request must have the application/json content type, or use request.get_json(force=True) to ignore the content type.
+
+###############################################################
+409 : conflict
+201: created
+400 : bad request
+
+
+###########################################
+
+encr & decr passwords
+
+from werkzeug.security import generate_password_hash, check_password_hash
+
+#############  create jwt access token #############################
+
+at config:
+    jwt = JWTManager(app)
+
+at routes :
+    token = create_access_token(identity=email)    # identity : means how identify the user
+    return jsonify(token=token), 200
+
+
+#######################################
+reset or forget password
+1- pip install Flask-Mail
+
+from mailtrap.io
+
+app.config['MAIL_SERVER']='smtp.mailtrap.io'
+app.config['MAIL_PORT'] = 2525
+# app.config['MAIL_USERNAME'] = '382aac1d0d143e'
+# app.config['MAIL_PASSWORD'] = 'e3e6141063063b'
+
+ADDING USERNAME AND PASSWORD ENV USING PYCHARM ENV FROM EDIT CONF
+
+app.config['MAIL_USERNAME'] = os.environ['MAIL_USERNAME']
+app.config['MAIL_PASSWORD'] = os.environ['MAIL_PASSWORD']
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+
+#####################################################
+The 204 status code means that the request was received and understood,
+but that there is no need to send any data back
+
+######################################################
+202 status code  means updated, # means change accepted
+204 status code means no content
+
+#####################################################
+> pip freeze > requirements.txt
+> pip install -r requirements.txt
+#####################################################
