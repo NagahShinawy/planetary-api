@@ -98,3 +98,5 @@ but that there is no need to send any data back
 > pip freeze > requirements.txt
 > pip install -r requirements.txt
 #####################################################
+obj to text representation ==> serializing 
+text to obj representation ==> deserializing 
